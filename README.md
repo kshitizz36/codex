@@ -19,6 +19,7 @@
   - [Platform sandboxing details](#platform-sandboxing-details)
 - [System requirements](#system-requirements)
 - [CLI reference](#cli-reference)
+- [Session Management](#session-management)
 - [Memory & project docs](#memory--project-docs)
 - [Non-interactive / CI mode](#non-interactive--ci-mode)
 - [Tracing / verbose logging](#tracing--verbose-logging)
@@ -139,6 +140,8 @@ codex "explain this codebase to me"
 codex --approval-mode full-auto "create the fanciest todo-list app"
 ```
 
+For managing and resuming sessions, see the [Session Management](#session-management) section below.
+
 That's it - Codex will scaffold a file, run it inside a sandbox, install any
 missing dependencies, and show you the live result. Approve the changes and
 they'll be committed to your working directory.
@@ -223,6 +226,41 @@ The hardening mechanism Codex uses depends on your OS:
 | `codex completion <bash\|zsh\|fish>` | Print shell completion script       | `codex completion bash`              |
 
 Key flags: `--model/-m`, `--approval-mode/-a`, `--quiet/-q`, and `--notify`.
+
+---
+
+## Session Management
+
+Codex CLI provides two ways to manage sessions:
+
+**1. Command-Line Interface (CLI) Commands:**
+
+These commands are run directly from your terminal *before* starting or *after* exiting an interactive Codex session.
+
+| Command                          | Purpose                                                                 | Example                                   |
+| -------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------- |
+| `codex session list`             | List all saved sessions.                                                | `codex session list`                      |
+| `codex session save [name]`      | Save the current session context (e.g., instructions, model) with an optional name. Note: This does not save the chat history. To resume a session with history, use the `--history` flag or the `/sessions` command from within an active session. | `codex session save my-feature-branch`    |
+| `codex session load <id_or_name>`| Load a saved session's configuration to start a new interactive session. | `codex session load my-feature-branch`  |
+| `codex session delete <id_or_name>`| Delete a saved session.                                                 | `codex session delete session-12345`    |
+
+*   To save the state of an active session (instructions, model settings, CWD), you would typically exit the session first, then use `codex session save <name>`.
+*   To start a new session with a previously saved configuration, use `codex session load <id_or_name>`.
+*   To resume a session including its chat history, use the `codex --history` flag when starting the CLI.
+
+**2. Interactive Slash Command (`/sessions`):**
+
+When you are *inside* an active interactive Codex session (after running `codex` and are at the chat prompt):
+
+*   Type `/sessions` and press Enter.
+*   This will open an overlay allowing you to:
+    *   Browse a list of your previously saved sessions (those created via `codex session save` or from previous interactive sessions).
+    *   "Resume" a selected session, which loads its history and context into your current interactive session.
+*   The `/sessions` command is primarily for *loading* or *resuming* previous full dialogues. It does not currently support saving the *current* interactive session directly from the overlay or deleting sessions.
+
+**Important Distinction:**
+
+Attempting to type `codex session save` (or similar `codex session` commands) directly into the interactive chat prompt will not work as expected. The CLI will interpret this as a prompt for the AI, not as a special CLI command. Use the command-line versions *outside* the interactive session for managing session configurations, and the `/sessions` slash command *inside* for resuming previous dialogues.
 
 ---
 
